@@ -17,7 +17,7 @@ class BandCamper(object):
                 page) + '&sort_field=' + str(pop_date))
         html_doc = response.read()
 
-        soup = BeautifulSoup(html_doc)
+        soup = BeautifulSoup(html_doc, "lxml")
 
         for item in soup.find_all("li", class_="item"):
             band = item.find('div', class_='itemsubtext').text
@@ -48,7 +48,7 @@ class BandCamper(object):
             'http://bandcamp.com/search?q=' + name.replace(" ", "%20"))
         html_doc = response.read()
 
-        soup = BeautifulSoup(html_doc)
+        soup = BeautifulSoup(html_doc, "lxml")
 
         for item in soup.find_all("li", class_="searchresult"):
             type = item.find('div', class_='itemtype').text.strip().lower()
