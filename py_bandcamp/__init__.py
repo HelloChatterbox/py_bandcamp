@@ -11,7 +11,7 @@ import re
 
 
 class BandCamper(object):
-    def search_albums_by_tag(self, tag, page=0, pop_date=1):
+    def search_tag(self, tag, page=1, pop_date=1):
         response = urlopen(
             'http://bandcamp.com/tag/' + str(tag) + '?page=' + str(
                 page) + '&sort_field=' + str(pop_date))
@@ -22,30 +22,36 @@ class BandCamper(object):
         for item in soup.find_all("li", class_="item"):
             band = item.find('div', class_='itemsubtext').text
             data = {"artist": band,
-                     "album_name": item.find('div', class_='itemtext').text,
+                     "name": item.find('div', class_='itemtext').text,
                      "url": item.find('a').get('href')}
             yield data
-        yield self.search_albums_by_tag(tag, page + 1, pop_date)
+        yield self.search_tag(tag, page + 1, pop_date)
 
     def search_albums(self, album_name):
-        for album in self.search(album_name, True, False, False, False):
+        for album in self.search(album_name, albums=True, tracks=False,
+                                 artists=False, labels=False):
             yield album
 
     def search_tracks(self, track_name):
-        for t in self.search(track_name, False, True, False, False):
+        for t in self.search(track_name, albums=False, tracks=True,
+                             artists=False, labels=False):
             yield t
 
     def search_artists(self, artist_name):
-        for a in self.search(artist_name, False, False, True, False):
+        for a in self.search(artist_name, albums=False, tracks=False,
+                             artists=True, labels=False):
             yield a
 
     def search_labels(self, label_name):
-        for a in self.search(label_name, False, False, False, True):
+        for a in self.search(label_name, albums=False, tracks=False,
+                             artists=False, labels=True):
             yield a
 
-    def search(self, name, albums=True, tracks=True, artists=True, labels=True):
+    def search(self, name, page=1, albums=True, tracks=True, artists=True,
+               labels=True):
         response = urlopen(
-            'http://bandcamp.com/search?q=' + name.replace(" ", "%20"))
+            'http://bandcamp.com/search?page=' + str(page) +
+            '&q=' + name.replace(" ", "%20"))
         html_doc = response.read()
 
         soup = BeautifulSoup(html_doc, "lxml")
@@ -64,6 +70,8 @@ class BandCamper(object):
                 continue
             data["type"] = type
             yield data
+        yield self.search(name, page=page + 1, albums=albums, tracks=tracks,
+                          artists=artists, labels=labels)
 
     def get_streams(self, urls):
         if isinstance(urls, basestring):
@@ -79,7 +87,6 @@ class BandCamper(object):
         if 'bandcamp.com' not in url: # name given
             url = 'https://' + url + '.bandcamp.com/music'
 
-
         tracks = []
         album_data = self._get_bandcamp_metadata(url)
 
@@ -88,7 +95,7 @@ class BandCamper(object):
         if type(album_data) is list:
             for album_url in album_data:
                 tracks.append(
-                    self._scrape_bandcamp_url(album_url, num_tracks))
+                    self.parse_bandcamp_url(album_url, num_tracks))
             return tracks
 
         artist = album_data["artist"]

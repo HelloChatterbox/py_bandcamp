@@ -2,7 +2,7 @@ from py_bandcamp import BandCamper
 
 b = BandCamper()
 
-for item in b.search_albums_by_tag("stoner"):
+for item in b.search_tag("stoner"):
     print item
     break
 
@@ -22,6 +22,9 @@ for item in b.search_labels("evil"):
     print item
     break
 
+for item in b.search("cyber punk"):
+    print item
+    break
 
 tracks = b.parse_bandcamp_url("https://lordpiggy.bandcamp.com/track/in-the-name-of-porn-grind-on")
 streams = b.get_streams("https://hellpatrol.bandcamp.com/track/satanic-storm")

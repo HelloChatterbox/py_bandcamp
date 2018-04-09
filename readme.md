@@ -12,7 +12,7 @@ for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
 
     b = BandCamper()
 
-    for item in b.search_albums_by_tag("stoner"):
+    for item in b.search_tag("stoner"):
         print item
         break
 
@@ -32,6 +32,10 @@ for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
         print item
         break
 
+    for item in b.search("cyber punk"):
+        print item
+        break
+
 
     tracks = b.parse_bandcamp_url("https://lordpiggy.bandcamp.com/track/in-the-name-of-porn-grind-on")
     streams = b.get_streams("https://hellpatrol.bandcamp.com/track/satanic-storm")
@@ -42,13 +46,14 @@ for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
     """
     output:
 
-    {'url': 'https://naxatras.bandcamp.com/album/iii', 'album_name': u'III', 'artist': u'Naxatras'}
-    {'name': u'Scythelord', 'tags': [u'metal', u'death metal', u'thrash metal'], 'url': 'https://scythelordofficial.bandcamp.com', 'location': u'hell, Michigan', 'genre': u'Metal', 'type': u'artist'}
+    {'url': 'https://naxatras.bandcamp.com/album/iii', 'name': u'III', 'artist': u'Naxatras'}
+    {'name': u'Scythelord', 'tags': [u'thrash metal', u'metal', u'death metal'], 'url': 'https://scythelordofficial.bandcamp.com', 'location': u'hell, Michigan', 'genre': u'Metal', 'type': u'artist'}
     {'tags': [u'sweden', u'space rock', u'spacerock', u'gothenburg', u'psychedelic rock', u'psych', u'rock', u'stoner'], 'url': 'https://yurigagarinswe.bandcamp.com/album/at-the-center-of-all-infinity', 'type': u'album', 'track_number': u'6', 'released': u'02 December 2015', 'length': u'6 tracks, 40 minutes', 'album_name': u'At The Center Of All Infinity', 'minutes': u'40'}
     {'artist': u'Dead Unicorn', 'url': 'https://deadunicorn.bandcamp.com/track/astronaut-problems', 'tags': [], 'released': u'26 May 2017', 'track_name': u'Astronaut Problems', 'album_name': u'Aliens', 'type': u'track'}
     {'url': 'https://versusevil.bandcamp.com', 'tags': [], 'type': u'label', 'name': u'Versus Evil', 'location': u'Maryland'}
+    {'artist': u'Floodlore', 'url': 'https://floodlore.bandcamp.com/track/cyber-punk', 'tags': [], 'released': u'26 January 2018', 'track_name': u'Cyber Punk', 'album_name': u'When It Was Forged: Chapters 1 and 2', 'type': u'track'}
     ['album', 'album_url', 'track_name', 'artist', 'url', 'artwork_url', 'year', 'tags', 'track_number']
-    [u'https://t4.bcbits.com/stream/5af2fa61869d06b9304470860b2dd9c2/mp3-128/3632181075?p=0&ts=1523332161&t=cffea273a2673fd99ea631987031b5cfd3af1114&token=1523332161_50e298404d47b570eb09b122c042ac7652cbb9a1']
+    [u'https://t4.bcbits.com/stream/5af2fa61869d06b9304470860b2dd9c2/mp3-128/3632181075?p=0&ts=1523339746&t=792b74d8c325babdc5077041ad2a4dda24bb8362&token=1523339746_7a4f055c7ecb5edc5137149b4e6fdfaae42f2365']
 
     """
 
