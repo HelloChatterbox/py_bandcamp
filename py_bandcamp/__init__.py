@@ -1,10 +1,17 @@
 from bs4 import BeautifulSoup
 from datetime import datetime
 import demjson
+import sys
+if sys.version_info[0] < 3:
+    from urllib2 import urlopen
+else:
+    from urllib.request import urlopen
+import requests
+import re
 
 
 class BandCamper(object):
-    def search_tags(self, tag, page=0, pop_date=1):
+    def search_albums_by_tag(self, tag, page=0, pop_date=1):
         response = urlopen(
             'http://bandcamp.com/tag/' + str(tag) + '?page=' + str(
                 page) + '&sort_field=' + str(pop_date))
@@ -14,25 +21,29 @@ class BandCamper(object):
 
         for item in soup.find_all("li", class_="item"):
             band = item.find('div', class_='itemsubtext').text
-            album = {"name": item.find('div', class_='itemtext').text,
-                     "url": item.find('a').get('href')}
+            data = {"artist": band,
+                     "album_name": item.find('div', class_='itemtext').text,
+                     "album_url": item.find('a').get('href')}
+            yield data
+        yield self.search_albums_by_tag(tag, page + 1, pop_date)
 
-            yield band, album
-        yield self.search_tags(tag, page + 1, pop_date)
-
-    def search_albums(self, query):
-        for album in self.search(query, True, False, False):
+    def search_albums(self, album_name):
+        for album in self.search(album_name, True, False, False, False):
             yield album
 
-    def search_tracks(self, query):
-        for t in self.search(query, False, True, False):
+    def search_tracks(self, track_name):
+        for t in self.search(track_name, False, True, False, False):
             yield t
 
-    def search_artists(self, query):
-        for a in self.search(query, False, False, True):
+    def search_artists(self, artist_name):
+        for a in self.search(artist_name, False, False, True, False):
             yield a
 
-    def search(self, name, albums=True, tracks=True, artists=True):
+    def search_labels(self, label_name):
+        for a in self.search(label_name, False, False, False, True):
+            yield a
+
+    def search(self, name, albums=True, tracks=True, artists=True, labels=True):
         response = urlopen(
             'http://bandcamp.com/search?q=' + name.replace(" ", "%20"))
         html_doc = response.read()
@@ -47,10 +58,28 @@ class BandCamper(object):
                 data = self._parse_track(item)
             elif type == "artist" and artists:
                 data = self._parse_artist(item)
+            elif type == "label" and labels:
+                data = self._parse_label(item)
             else:
                 continue
             data["type"] = type
             yield data
+
+    def _parse_label(self, item):
+        name = item.find('div', class_='heading').text.strip()
+        url = item.find('div', class_='heading').find('a')['href']
+        location = item.find('div', class_='subhead').text.strip()
+        try:
+            tags = item.find('div', class_='tags').text\
+                .replace("tags:", "").split(",")
+            tags = [t.strip().lower() for t in tags]
+        except: # sometimes missing
+            tags = []
+
+        data = {"name": name, "location": location,
+                "tags": tags, "url": url
+                }
+        return data
 
     def _parse_artist(self, item):
         name = item.find('div', class_='heading').text.strip()
@@ -166,12 +195,6 @@ class BandCamper(object):
         return tracks
 
     def _get_bandcamp_metadata(self, url):
-        """
-        Read information from the Bandcamp JavaScript object.
-        The method may return a list of URLs (indicating this is probably a "main" page which links to one or more albums),
-        or a JSON if we can already parse album/track info from the given url.
-        The JSON is "sloppy". The native python JSON parser often can't deal, so we use the more tolerant demjson instead.
-        """
         request = requests.get(url)
         try:
             sloppy_json = request.text.split("var TralbumData = ")

@@ -8,20 +8,26 @@ for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
 
 ## usage
 
+    from py_bandcamp import BandCamper
+
     b = BandCamper()
 
-    for item in b.search_tags("black metal"):
+    for item in b.search_albums_by_tag("stoner"):
         print item
         break
 
-    for item in b.search_artists("Sergeant Hamster"):
+    for item in b.search_artists("Scythe"):
         print item
         break
 
-    for item in b.search_albums("At The Center Of All Infinity"):
+    for item in b.search_albums("Center Of All Infinity"):
         print item
         break
 
     for item in b.search_tracks("Astronaut Problems"):
+        print item
+        break
+
+    for item in b.search_labels("evil"):
         print item
         break
