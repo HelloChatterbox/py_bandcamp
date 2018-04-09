@@ -1,6 +1,6 @@
-## py bancamp
+## py bandcamp
 
-for your hipster music scrapping needs
+for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
 
 ## install
 
