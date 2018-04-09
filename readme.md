@@ -31,3 +31,25 @@ for your [bandcamp](https://bandcamp.com) hipster music scrapping needs
     for item in b.search_labels("evil"):
         print item
         break
+
+
+    tracks = b.parse_bandcamp_url("https://lordpiggy.bandcamp.com/track/in-the-name-of-porn-grind-on")
+    streams = b.get_streams("https://hellpatrol.bandcamp.com/track/satanic-storm")
+
+    print tracks[0].keys()
+    print streams
+
+    """
+    output:
+
+    {'url': 'https://naxatras.bandcamp.com/album/iii', 'album_name': u'III', 'artist': u'Naxatras'}
+    {'name': u'Scythelord', 'tags': [u'metal', u'death metal', u'thrash metal'], 'url': 'https://scythelordofficial.bandcamp.com', 'location': u'hell, Michigan', 'genre': u'Metal', 'type': u'artist'}
+    {'tags': [u'sweden', u'space rock', u'spacerock', u'gothenburg', u'psychedelic rock', u'psych', u'rock', u'stoner'], 'url': 'https://yurigagarinswe.bandcamp.com/album/at-the-center-of-all-infinity', 'type': u'album', 'track_number': u'6', 'released': u'02 December 2015', 'length': u'6 tracks, 40 minutes', 'album_name': u'At The Center Of All Infinity', 'minutes': u'40'}
+    {'artist': u'Dead Unicorn', 'url': 'https://deadunicorn.bandcamp.com/track/astronaut-problems', 'tags': [], 'released': u'26 May 2017', 'track_name': u'Astronaut Problems', 'album_name': u'Aliens', 'type': u'track'}
+    {'url': 'https://versusevil.bandcamp.com', 'tags': [], 'type': u'label', 'name': u'Versus Evil', 'location': u'Maryland'}
+    ['album', 'album_url', 'track_name', 'artist', 'url', 'artwork_url', 'year', 'tags', 'track_number']
+    [u'https://t4.bcbits.com/stream/5af2fa61869d06b9304470860b2dd9c2/mp3-128/3632181075?p=0&ts=1523332161&t=cffea273a2673fd99ea631987031b5cfd3af1114&token=1523332161_50e298404d47b570eb09b122c042ac7652cbb9a1']
+
+    """
+
+

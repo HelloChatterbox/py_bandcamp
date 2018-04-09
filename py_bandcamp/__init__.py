@@ -23,7 +23,7 @@ class BandCamper(object):
             band = item.find('div', class_='itemsubtext').text
             data = {"artist": band,
                      "album_name": item.find('div', class_='itemtext').text,
-                     "album_url": item.find('a').get('href')}
+                     "url": item.find('a').get('href')}
             yield data
         yield self.search_albums_by_tag(tag, page + 1, pop_date)
 
@@ -65,81 +65,17 @@ class BandCamper(object):
             data["type"] = type
             yield data
 
-    def _parse_label(self, item):
-        name = item.find('div', class_='heading').text.strip()
-        url = item.find('div', class_='heading').find('a')['href']
-        location = item.find('div', class_='subhead').text.strip()
-        try:
-            tags = item.find('div', class_='tags').text\
-                .replace("tags:", "").split(",")
-            tags = [t.strip().lower() for t in tags]
-        except: # sometimes missing
-            tags = []
+    def get_streams(self, urls):
+        if isinstance(urls, basestring):
+            urls = [urls]
+        direct_links = []
+        for url in urls:
+            tracks = self.parse_bandcamp_url(url)
+            for track in tracks:
+                direct_links.append(track["url"])
+        return direct_links
 
-        data = {"name": name, "location": location,
-                "tags": tags, "url": url
-                }
-        return data
-
-    def _parse_artist(self, item):
-        name = item.find('div', class_='heading').text.strip()
-        url = item.find('div', class_='heading').find('a')['href']
-        genre = item.find('div', class_='genre').text.strip().replace(
-            "genre: ", "")
-        location = item.find('div', class_='subhead').text.strip()
-        try:
-            tags = item.find('div', class_='tags').text\
-                .replace("tags:", "").split(",")
-            tags = [t.strip().lower() for t in tags]
-        except: # sometimes missing
-            tags = []
-
-        data = {"name": name, "genre": genre, "location": location,
-                "tags": tags, "url": url
-                }
-        return data
-
-    def _parse_track(self, item):
-        track_name = item.find('div', class_='heading').text.strip()
-        url = item.find('div', class_='heading').find('a')['href']
-        album_name, artist = item.find('div', class_='subhead').text.strip(
-
-        ).split("by")
-        album_name = album_name.strip().replace("from ", "")
-        artist = artist.strip()
-        released = item.find('div', class_='released').text.strip().replace(
-            "released ", "")
-        try:
-            tags = item.find('div', class_='tags').text\
-                .replace("tags:", "").split(",")
-            tags = [t.strip().lower() for t in tags]
-        except: # sometimes missing
-            tags = []
-
-        data = {"track_name": track_name, "released": released, "url": url,
-                "tags": tags, "album_name": album_name, "artist": artist
-                }
-        return data
-
-    def _parse_album(self, item):
-        album_name = item.find('div', class_='heading').text.strip()
-        url = item.find('div', class_='heading').find('a')['href']
-        lenght = item.find('div', class_='length').text.strip()
-        tracks, minutes = lenght.split(",")
-        tracks = tracks.replace(" tracks", "").replace(" track", "").strip()
-        minutes = minutes.replace(" minutes", "").strip()
-        released = item.find('div', class_='released').text.strip().replace(
-            "released ", "")
-        tags = item.find('div', class_='tags').text.replace("tags:",
-                                                            "").split(",")
-        tags = [t.strip().lower() for t in tags]
-        data = {"album_name": album_name,
-                "length": lenght, "minutes": minutes, "url": url,
-                "track_number": tracks, "released": released, "tags": tags
-                }
-        return data
-
-    def _scrape_bandcamp_url(self, url, num_tracks=-1):
+    def parse_bandcamp_url(self, url, num_tracks=-1):
         if 'bandcamp.com' not in url: # name given
             url = 'https://' + url + '.bandcamp.com/music'
 
@@ -181,7 +117,7 @@ class BandCamper(object):
                      "track_name": track_name,
                      "album": album_name,
                      "year": album_year,
-                     "genre": album_data['genre'],
+                     "tags": album_data['tags'],
                      "artwork_url": album_data['artFullsizeUrl'],
                      "track_number": track_number,
                      "album_url": album_data['url'],
@@ -193,6 +129,80 @@ class BandCamper(object):
             except Exception as e:
                 print(e)
         return tracks
+
+    def _parse_label(self, item):
+        name = item.find('div', class_='heading').text.strip()
+        url = item.find('div', class_='heading').find('a')['href'].split("?")[0]
+        location = item.find('div', class_='subhead').text.strip()
+        try:
+            tags = item.find('div', class_='tags').text\
+                .replace("tags:", "").split(",")
+            tags = [t.strip().lower() for t in tags]
+        except: # sometimes missing
+            tags = []
+
+        data = {"name": name, "location": location,
+                "tags": tags, "url": url
+                }
+        return data
+
+    def _parse_artist(self, item):
+        name = item.find('div', class_='heading').text.strip()
+        url = item.find('div', class_='heading').find('a')['href'].split("?")[0]
+        genre = item.find('div', class_='genre').text.strip().replace(
+            "genre: ", "")
+        location = item.find('div', class_='subhead').text.strip()
+        try:
+            tags = item.find('div', class_='tags').text\
+                .replace("tags:", "").split(",")
+            tags = [t.strip().lower() for t in tags]
+        except: # sometimes missing
+            tags = []
+
+        data = {"name": name, "genre": genre, "location": location,
+                "tags": tags, "url": url
+                }
+        return data
+
+    def _parse_track(self, item):
+        track_name = item.find('div', class_='heading').text.strip()
+        url = item.find('div', class_='heading').find('a')['href'].split("?")[0]
+        album_name, artist = item.find('div', class_='subhead').text.strip(
+
+        ).split("by")
+        album_name = album_name.strip().replace("from ", "")
+        artist = artist.strip()
+        released = item.find('div', class_='released').text.strip().replace(
+            "released ", "")
+        try:
+            tags = item.find('div', class_='tags').text\
+                .replace("tags:", "").split(",")
+            tags = [t.strip().lower() for t in tags]
+        except: # sometimes missing
+            tags = []
+
+        data = {"track_name": track_name, "released": released, "url": url,
+                "tags": tags, "album_name": album_name, "artist": artist
+                }
+        return data
+
+    def _parse_album(self, item):
+        album_name = item.find('div', class_='heading').text.strip()
+        url = item.find('div', class_='heading').find('a')['href'].split("?")[0]
+        lenght = item.find('div', class_='length').text.strip()
+        tracks, minutes = lenght.split(",")
+        tracks = tracks.replace(" tracks", "").replace(" track", "").strip()
+        minutes = minutes.replace(" minutes", "").strip()
+        released = item.find('div', class_='released').text.strip().replace(
+            "released ", "")
+        tags = item.find('div', class_='tags').text.replace("tags:",
+                                                            "").split(",")
+        tags = [t.strip().lower() for t in tags]
+        data = {"album_name": album_name,
+                "length": lenght, "minutes": minutes, "url": url,
+                "track_number": tracks, "released": released, "tags": tags
+                }
+        return data
 
     def _get_bandcamp_metadata(self, url):
         request = requests.get(url)
@@ -218,10 +228,7 @@ class BandCamper(object):
         # from this album/track, join them and set it as the "genre"
         regex_tags = r'<a class="tag" href[^>]+>([^<]+)</a>'
         tags = re.findall(regex_tags, request.text, re.MULTILINE)
-        # make sure we treat integers correctly with join()
-        # according to http://stackoverflow.com/a/7323861
-        # (very unlikely, but better safe than sorry!)
-        output['genre'] = ' '.join(s for s in tags)
+        output['tags'] = tags
         # make sure we always get the correct album name, even if this is a
         # track URL (unless this track does not belong to any album, in which
         # case the album name remains set as None.
@@ -237,7 +244,6 @@ class BandCamper(object):
                 "href=\"")[1]
             output['artFullsizeUrl'] = artUrl
         except:
-            print("Couldn't get full artwork")
             output['artFullsizeUrl'] = None
 
         return output
