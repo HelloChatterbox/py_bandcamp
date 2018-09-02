@@ -1,8 +1,12 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 from bs4 import BeautifulSoup
 import json
 import sys
 if sys.version_info[0] < 3:
-    from urllib2 import urlopen
+    from urllib.request import urlopen
 else:
     from urllib.request import urlopen
 import requests
@@ -15,7 +19,7 @@ class BandCamper(object):
                 page) + '&sort_field=' + str(pop_date))
         html_doc = response.read()
 
-        soup = BeautifulSoup(html_doc, "lxml")
+        soup = BeautifulSoup(html_doc, 'html.parser')
 
         for item in soup.find_all("li", class_="item"):
             band = item.find('div', class_='itemsubtext').text
@@ -52,7 +56,7 @@ class BandCamper(object):
             '&q=' + name.replace(" ", "%20"))
         html_doc = response.read()
 
-        soup = BeautifulSoup(html_doc, "lxml")
+        soup = BeautifulSoup(html_doc, 'html.parser')
 
         for item in soup.find_all("li", class_="searchresult"):
             type = item.find('div', class_='itemtype').text.strip().lower()
@@ -73,7 +77,7 @@ class BandCamper(object):
 
     def get_track_lyrics(self, track_url):
         track_page = requests.get(track_url)
-        track_soup = BeautifulSoup(track_page.text, "lxml")
+        track_soup = BeautifulSoup(track_page.text, 'html.parser')
         track_lyrics = track_soup.find("div", {"class": "lyricsText"})
         if track_lyrics:
             return track_lyrics.text

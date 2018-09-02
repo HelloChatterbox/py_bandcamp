@@ -1,34 +1,35 @@
+from __future__ import print_function
 from py_bandcamp import BandCamper
 
 b = BandCamper()
 
 for item in b.search_tag("stoner"):
-    print item
+    print(item)
     break
 
 for item in b.search_artists("Scythe"):
-    print item
+    print(item)
     break
 
 for item in b.search_albums("Center Of All Infinity"):
-    print item
+    print(item)
     break
 
 for item in b.search_tracks("Astronaut Problems"):
-    print item
+    print(item)
     break
 
 for item in b.search_labels("evil"):
-    print item
+    print(item)
     break
 
 for item in b.search("cyber punk"):
-    print item
+    print(item)
     break
 
 streams = b.get_streams("https://hellpatrol.bandcamp.com/track/satanic-storm")
 
-print streams
+print(streams)
 
 """ 
 output:

@@ -2,9 +2,9 @@ from distutils.core import setup
 
 setup(
     name='py_bandcamp',
-    version='0.4.2',
+    version='0.4.3',
     packages=['py_bandcamp'],
-    install_requires=["bs4", "lxml"],
+    install_requires=["bs4"],
     url='https://github.com/JarbasAl/py_bandcamp',
     license='MIT',
     author='jarbasAI',
