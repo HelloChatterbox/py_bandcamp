@@ -1,14 +1,7 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import object
+
 from bs4 import BeautifulSoup
 import json
-import sys
-if sys.version_info[0] < 3:
-    from urllib.request import urlopen
-else:
-    from urllib.request import urlopen
+from urllib.request import urlopen
 import requests
 
 
@@ -92,11 +85,13 @@ class BandCamper(object):
 
     def get_stream_url(self, url):
         response = urlopen(url)
-        string = response.read()
+        txt_string = response.read().decode("utf-8")
         search = "var TralbumData = "
-        startIndex = string.find(search) + len(search)
-        endIndex = string.find(";", startIndex)
-        trackinfo = string[startIndex:endIndex]
+        startIndex = txt_string.find(search) + len(search)
+
+        endIndex = txt_string.find(";", startIndex)
+        trackinfo = txt_string[startIndex:endIndex]
+
 
         search = "trackinfo:"
         startIndex = trackinfo.find("trackinfo:") + len(search)
