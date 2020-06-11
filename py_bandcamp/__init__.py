@@ -5,15 +5,25 @@ import requests
 
 class BandCamper:
     @staticmethod
+    def _extract_blob(blob):
+        # TODO theres gotta be a nicer way to extract blob
+        if "<div data-blob='" in blob:
+            json_data = \
+                blob.split("<div data-blob='")[1].split(
+                    "' id=\"pagedata\"></div>")[0]
+        else:
+            json_data = \
+                blob.split("div data-blob=\"")[1].split(
+                    "\" id=\"pagedata\"></div>")[0].replace("&quot;", '"')
+        return json_data
+
+    @staticmethod
     def tags(tag_list=True):
         r = requests.get("https://bandcamp.com/tags").content
         soup = BeautifulSoup(r, "html.parser")
 
-        # TODO theres gotta be a nicer way to extract blob
         blob = str(soup.find("div"))
-        json_data = \
-            blob.split("<div data-blob='")[1].split(
-                "' id=\"pagedata\"></div>")[0]
+        json_data = BandCamper._extract_blob(blob)
 
         data = json.loads(json_data)
         tags = {"genres": data["signup_params"]["genres"],
@@ -37,11 +47,9 @@ class BandCamper:
         html_doc = response.content
         soup = BeautifulSoup(html_doc, 'html.parser')
 
-        # TODO theres gotta be a nicer way to extract blob
         blob = str(soup.find("div"))
-        json_data = \
-            blob.split("div data-blob=\"")[1].split(
-                "\" id=\"pagedata\"></div>")[0].replace("&quot;", '"')
+        json_data = BandCamper._extract_blob(blob)
+
         dump = json.loads(json_data)["hub"]
 
         related_tags = [{"name": t["norm_name"], "score": t["relation"]}
@@ -50,15 +58,17 @@ class BandCamper:
         dig_deeper = dig_deeper["dig_deeper"]["results"]
         collections = collections["collections"]
 
-        _to_remove = ['custom_domain', 'custom_domain_verified',"item_type",
+        _to_remove = ['custom_domain', 'custom_domain_verified', "item_type",
                       'packages', 'slug_text', 'subdomain', 'is_preorder',
                       'item_id', 'num_comments', 'tralbum_id', 'band_id',
-                      'tralbum_type', 'art_id', 'genre_id', 'audio_track_id']
+                      'tralbum_type', 'genre_id', 'audio_track_id']
 
         for c in collections:
             if c["name"] == "bc_dailys":
                 continue
             for result in c["items"]:
+                result["image"] = "https://f4.bcbits.com/img/a{art_id}_1.jpg".\
+                    format(art_id=result.pop("art_id"))
                 for _ in _to_remove:
                     if _ in result:
                         result.pop(_)
@@ -104,7 +114,7 @@ class BandCamper:
 
     @staticmethod
     def search(name, page=1, albums=True, tracks=True, artists=True,
-               labels=True):
+               labels=False):
         params = {"page": page, "q": name}
         response = requests.get('http://bandcamp.com/search', params=params)
         html_doc = response.content
@@ -154,7 +164,12 @@ class BandCamper:
 
     @staticmethod
     def get_stream_url(url):
+        return BandCamper.get_stream_data(url)["stream"]
+
+    @staticmethod
+    def get_stream_data(url):
         txt_string = requests.get(url).text
+
         search = "var TralbumData = "
         startIndex = txt_string.find(search) + len(search)
 
@@ -166,12 +181,12 @@ class BandCamper:
         endIndex = trackinfo.find("],", startIndex) + len("]")
 
         parsed = json.loads(trackinfo[startIndex:endIndex])[0]
-        stream_url = parsed["file"]["mp3-128"]
-
-        return stream_url
+        return {"stream": parsed["file"]["mp3-128"],
+                "featured_track_title": parsed["title"]}
 
     @staticmethod
     def _parse_label(item):
+        art = item.find("div", {"class": "art"}).find("img")["src"]
         name = item.find('div', class_='heading').text.strip()
         url = item.find('div', class_='heading').find('a')['href'].split("?")[
             0]
@@ -184,7 +199,7 @@ class BandCamper:
             tags = []
 
         data = {"name": name, "location": location,
-                "tags": tags, "url": url
+                "tags": tags, "url": url, "image": art
                 }
         return data
 
@@ -202,10 +217,21 @@ class BandCamper:
             tags = [t.strip().lower() for t in tags]
         except:  # sometimes missing
             tags = []
-
-        data = {"name": name, "genre": genre, "location": location,
-                "tags": tags, "url": url
+        art = item.find("div", {"class": "art"}).find("img")["src"]
+        data = {"artist": name, "genre": genre, "location": location,
+                "tags": tags, "url": url, "image": art, "albums": []
                 }
+
+        soup = BeautifulSoup(requests.get(url).text, "html.parser")
+        for album in soup.find_all("a"):
+            album_url = album.find("p", {"class": "title"})
+            if album_url:
+                title = album_url.text.strip()
+                art = album.find("div", {"class": "art"}).find("img")["src"]
+                album_url = url + album["href"]
+                data["albums"].append({"album_name": title,
+                                       "image": art,
+                                       "url": album_url})
         return data
 
     @staticmethod
@@ -227,13 +253,20 @@ class BandCamper:
         except:  # sometimes missing
             tags = []
 
+        art = item.find("div", {"class": "art"}).find("img")["src"]
         data = {"track_name": track_name, "released": released, "url": url,
-                "tags": tags, "album_name": album_name, "artist": artist
+                "tags": tags, "album_name": album_name, "artist": artist,
+                "image": art
                 }
+        try:
+            data.update(BandCamper.get_stream_data(url))
+        except:
+            pass
         return data
 
     @staticmethod
     def _parse_album(item):
+        art = item.find("div", {"class": "art"}).find("img")["src"]
         album_name = item.find('div', class_='heading').text.strip()
         url = item.find('div', class_='heading').find('a')['href'].split("?")[
             0]
@@ -246,8 +279,22 @@ class BandCamper:
         tags = item.find('div', class_='tags').text.replace("tags:",
                                                             "").split(",")
         tags = [t.strip().lower() for t in tags]
+        artist = item.find("div", {"class": "subhead"}).text.strip()
+        if artist.startswith("by "):
+            artist = artist[3:]
         data = {"album_name": album_name,
-                "length": lenght, "minutes": minutes, "url": url,
-                "track_number": tracks, "released": released, "tags": tags
+                "length": lenght,
+                "minutes": minutes,
+                "url": url,
+                "image": art,
+                "artist": artist,
+                "track_number": tracks,
+                "released": released,
+                "tags": tags
                 }
+        try:
+            data.update(BandCamper.get_stream_data(url))
+        except:
+            pass
         return data
+

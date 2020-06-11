@@ -1,13 +1,18 @@
-from __future__ import print_function
+from pprint import pprint as print
 from py_bandcamp import BandCamper
 
 b = BandCamper()
 
-for item in b.search_tag("stoner"):
+streams = b.get_streams("https://naxatras.bandcamp.com/album/iii")
+
+print(streams)
+
+
+for item in b.search("naxatras"):
     print(item)
     break
 
-for item in b.search_artists("Scythe"):
+for item in b.search_artists("Mayhem"):
     print(item)
     break
 
@@ -19,17 +24,13 @@ for item in b.search_tracks("Astronaut Problems"):
     print(item)
     break
 
-for item in b.search_labels("evil"):
+for item in b.search_tag("black metal"):
     print(item)
     break
 
-for item in b.search("cyber punk"):
+for item in b.search_labels("cyber punk"):
     print(item)
     break
-
-streams = b.get_streams("https://hellpatrol.bandcamp.com/track/satanic-storm")
-
-print(streams)
 
 """ 
 output:
