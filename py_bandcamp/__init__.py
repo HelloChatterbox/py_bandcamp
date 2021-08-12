@@ -360,6 +360,9 @@ class BandcampTrack:
     @staticmethod
     def get_track_data(url):
         data = extract_ldjson_blob(url, clean=True)
+        kwords = data.get('keywords', "")
+        if isinstance(kwords, str):
+            kwords = kwords.split(", ")
         track = {
             'dateModified': data.get('dateModified'),
             'datePublished': data.get('datePublished'),
@@ -367,7 +370,7 @@ class BandcampTrack:
             "title": data.get("name"),
             "type": data.get("type"),
             'image': data.get('image'),
-            'keywords': data.get('keywords', "").split(", ")
+            'keywords': kwords
         }
         for k, v in get_props(data).items():
             track[k] = v
@@ -513,6 +516,9 @@ class BandcampAlbum:
     def get_album_data(url):
         data = extract_ldjson_blob(url, clean=True)
         props = get_props(data)
+        kwords = data.get('keywords', "")
+        if isinstance(kwords, str):
+            kwords = kwords.split(", ")
         return {
             'dateModified': data.get('dateModified'),
             'datePublished': data.get('datePublished'),
@@ -523,7 +529,7 @@ class BandcampAlbum:
             "n_tracks": data.get('numTracks'),
             'image': data.get('image'),
             'featured_track_num': props.get('featured_track_num'),
-            'keywords': data.get('keywords', "").split(", ")
+            'keywords': kwords
         }
 
     def __repr__(self):
